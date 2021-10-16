@@ -1,6 +1,5 @@
 package com.example.weatherapps.Fragment;
 
-import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -34,7 +33,7 @@ public class ForecastFragment extends Fragment {
     CompositeDisposable compositeDisposable;
     OpenWeatherInterface mService;
 
-    TextView txtCity, txtGeoCoord;
+    TextView txtCity;
     RecyclerView recyclerForecast;
 
 
@@ -61,16 +60,17 @@ public class ForecastFragment extends Fragment {
         View itemView = inflater.inflate(R.layout.fragment_forecast, container, false);
 
         txtCity = itemView.findViewById(R.id.txtCityName);
-//        txtGeoCoord = itemView.findViewById(R.id.txtGeoCoords);
 
         recyclerForecast = itemView.findViewById(R.id.recyclerForecast);
         recyclerForecast.setHasFixedSize(true);
 
         recyclerForecast.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
         getForecastWeatherInformation();
+        Log.w("POSITION", Common.current_location.getLatitude() + " " + Common.current_location.getLongitude());
 
         return itemView;
     }
+
 
     @Override
     public void onDestroy() {

@@ -3,36 +3,26 @@ package com.example.weatherapps;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
-import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.weatherapps.Adapter.ViewPagerAdapter;
 import com.example.weatherapps.Common.Common;
-import com.example.weatherapps.Fragment.CityFragment;
-import com.example.weatherapps.Fragment.ForecastFragment;
-import com.example.weatherapps.Fragment.TodayWeatherFragment;
+import com.example.weatherapps.Fragment.WeatherToday;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -42,7 +32,6 @@ import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
-import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
@@ -57,11 +46,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     private Toolbar toolbar;
-    private CoordinatorLayout coordinatorLayout;
+    private LinearLayout mLinearLayout;
 
     private FusedLocationProviderClient fusedLocationProviderClient;
-    private LocationCallback locationCallback;
-    private LocationRequest locationRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,10 +56,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ButterKnife.bind(this);
+        mLinearLayout = findViewById(R.id.linear_layout);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Log.w("LOG", "HAHAHAHA1");
-        
+
 
         //Request permission
         Dexter.withContext(this)
@@ -87,19 +74,22 @@ public class MainActivity extends AppCompatActivity {
                             setView();
                             fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
                             showMeTheUserCurrentLocation();
-                            Log.w("LOG", "HAHAHAHA2");
+
                         }
                     }
 
                     @Override
                     public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
-                        Snackbar.make(coordinatorLayout, "Permission Denied", Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(mLinearLayout, "Permission Denied", Snackbar.LENGTH_LONG).show();
                     }
                 }).check();
+
+
     }
 
+
     private void setView() {
-        Log.w("LOG", "HAHAHAHA");
+
         viewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager(), new Lifecycle() {
             @Override
             public void addObserver(@NonNull LifecycleObserver observer) {
@@ -117,7 +107,6 @@ public class MainActivity extends AppCompatActivity {
                 return null;
             }
         }));
-        Log.w("LOG", "HAHAHAHA");
         new TabLayoutMediator(tabLayout, viewPager, new TabLayoutMediator.TabConfigurationStrategy() {
             @Override
             public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
@@ -144,8 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onComplete(@NonNull Task<Location> task) {
                     if(task != null){
                         Common.current_location = task.getResult();
-                        Toast.makeText(MainActivity.this, Common.current_location.getLongitude() + "", Toast.LENGTH_SHORT).show();
-
+                        locationNow(Common.current_location.getLatitude(), Common.current_location.getLongitude());
                     }
                     else {
                         Toast.makeText(MainActivity.this, "Something went wrong!", Toast.LENGTH_SHORT).show();
@@ -154,6 +142,20 @@ public class MainActivity extends AppCompatActivity {
             });
 
         }
+
+    }
+
+    private void locationNow(Double a, Double b) {
+        if(a == null && b == null){
+            return;
+        }
+        Bundle bundle = new Bundle();
+        bundle.putDouble("a", a);
+        bundle.putDouble("b", b);
+        WeatherToday fragment = new WeatherToday();
+        fragment.setArguments(bundle);
+
+        getSupportFragmentManager().beginTransaction().replace(R.id.linear_layout, fragment).commit();
 
     }
 
